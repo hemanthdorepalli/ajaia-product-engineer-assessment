@@ -20,8 +20,8 @@ export default function DocPage({ params }: { params: Promise<{ id: string }> })
   const [title, setTitle] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const router = useRouter();
   const [showShare, setShowShare] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     fetch(`/api/documents/${id}`)
@@ -117,6 +117,10 @@ export default function DocPage({ params }: { params: Promise<{ id: string }> })
       <div className="max-w-4xl mx-auto p-6">
         <Editor content={doc.content} onSave={saveContent} editable={canEdit} />
       </div>
+
+      {showShare && (
+        <ShareModal docId={id} onClose={() => setShowShare(false)} />
+      )}
     </main>
   );
 }
