@@ -6,12 +6,13 @@ async function main() {
   await prisma.user.createMany({
     data: [
       { id: "hemanth-test", email: "hemanth@ajaia.ai", name: "Hemanth" },
+      { id: "user-alice", email: "alice@ajaia.ai", name: "Alice" },
       { id: "user-bob", email: "bob@ajaia.ai", name: "Bob" },
       { id: "user-carol", email: "carol@ajaia.ai", name: "Carol" },
     ],
     skipDuplicates: true,
   });
-  console.log("Seeded 3 users");
+  console.log("Seeded 4 users");
 }
 
 main()
