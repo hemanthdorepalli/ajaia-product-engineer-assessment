@@ -85,25 +85,39 @@ export default function DashboardPage() {
     router.push("/");
   };
 
-  if (loading) return <div className="p-8 text-gray-400">Loading...</div>;
+  if (loading)
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 text-slate-400">
+        Loading...
+      </div>
+    );
 
   return (
-    <main className="min-h-screen bg-gray-50">
-      <nav className="bg-white border-b px-6 py-3 flex justify-between items-center">
+    <main className="min-h-screen bg-slate-50">
+      <nav className="sticky top-0 z-10 bg-white/80 backdrop-blur border-b border-slate-200 px-6 py-3 flex justify-between items-center">
         <h1 className="text-xl font-bold text-blue-600">Ajaia Docs</h1>
-        <div className="flex items-center gap-4">
-          <span className="text-sm text-gray-500">{user?.name} ({user?.email})</span>
-          <button onClick={logout} className="text-sm text-red-500 hover:underline">
+        <div className="flex items-center gap-3">
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-xs font-semibold text-white">
+            {user?.name?.[0]?.toUpperCase()}
+          </span>
+          <span className="hidden text-sm text-slate-600 sm:block">
+            {user?.name}{" "}
+            <span className="text-slate-400">({user?.email})</span>
+          </span>
+          <button
+            onClick={logout}
+            className="rounded-lg px-3 py-1.5 text-sm font-medium text-red-500 transition hover:bg-red-50"
+          >
             Logout
           </button>
         </div>
       </nav>
 
       <div className="max-w-4xl mx-auto p-6">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-lg font-semibold">My Documents</h2>
+        <div className="flex flex-wrap justify-between items-center gap-3 mb-6">
+          <h2 className="text-lg font-semibold text-slate-900">My Documents</h2>
           <div className="flex gap-2">
-            <label className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-300 cursor-pointer">
+            <label className="cursor-pointer rounded-lg bg-white px-4 py-2 text-sm font-medium text-slate-700 ring-1 ring-slate-200 transition hover:bg-slate-100">
               {uploading ? "Importing..." : "Import .txt / .md"}
               <input
                 type="file"
@@ -114,7 +128,7 @@ export default function DashboardPage() {
             </label>
             <button
               onClick={createDoc}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700"
+              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-blue-700"
             >
               + New Document
             </button>
@@ -122,26 +136,33 @@ export default function DashboardPage() {
         </div>
 
         {owned.length === 0 ? (
-          <p className="text-gray-400 text-sm mb-8">No documents yet. Create one to get started.</p>
+          <div className="mb-8 rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center text-sm text-slate-400">
+            No documents yet. Create one to get started.
+          </div>
         ) : (
           <div className="grid gap-3 mb-8">
             {owned.map((doc) => (
               <div
                 key={doc.id}
-                className="bg-white p-4 rounded-lg border hover:shadow-sm flex justify-between items-center"
+                className="group flex items-center justify-between rounded-xl border border-slate-200 bg-white p-4 transition hover:border-slate-300 hover:shadow-sm"
               >
                 <div
-                  className="cursor-pointer flex-1"
+                  className="flex flex-1 cursor-pointer items-center gap-3"
                   onClick={() => router.push(`/docs/${doc.id}`)}
                 >
-                  <p className="font-medium">{doc.title}</p>
-                  <p className="text-xs text-gray-400">
-                    Updated {new Date(doc.updatedAt).toLocaleString()}
-                  </p>
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                    <DocIcon />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="truncate font-medium text-slate-900">{doc.title}</p>
+                    <p className="text-xs text-slate-400">
+                      Updated {new Date(doc.updatedAt).toLocaleString()}
+                    </p>
+                  </div>
                 </div>
                 <button
                   onClick={() => deleteDoc(doc.id)}
-                  className="text-red-400 hover:text-red-600 text-sm ml-4"
+                  className="ml-4 rounded-lg px-3 py-1.5 text-sm font-medium text-red-400 transition hover:bg-red-50 hover:text-red-600"
                 >
                   Delete
                 </button>
@@ -150,31 +171,58 @@ export default function DashboardPage() {
           </div>
         )}
 
-        <h2 className="text-lg font-semibold mb-4">Shared with Me</h2>
+        <h2 className="text-lg font-semibold text-slate-900 mb-4">Shared with Me</h2>
         {shared.length === 0 ? (
-          <p className="text-gray-400 text-sm">No shared documents.</p>
+          <div className="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center text-sm text-slate-400">
+            No shared documents.
+          </div>
         ) : (
           <div className="grid gap-3">
             {shared.map((doc) => (
               <div
                 key={doc.id}
-                className="bg-white p-4 rounded-lg border hover:shadow-sm cursor-pointer"
+                className="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 bg-white p-4 transition hover:border-slate-300 hover:shadow-sm"
                 onClick={() => router.push(`/docs/${doc.id}`)}
               >
-                <div className="flex items-center gap-2">
-                  <p className="font-medium">{doc.title}</p>
-                  <span className="text-xs px-2 py-0.5 bg-gray-100 rounded text-gray-500">
-                    {doc.shares?.[0]?.permission || "view"}
-                  </span>
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
+                  <DocIcon />
+                </span>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="truncate font-medium text-slate-900">{doc.title}</p>
+                    <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-500">
+                      {doc.shares?.[0]?.permission || "view"}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-400">
+                    By {doc.owner.name} · Updated {new Date(doc.updatedAt).toLocaleString()}
+                  </p>
                 </div>
-                <p className="text-xs text-gray-400">
-                  By {doc.owner.name} · Updated {new Date(doc.updatedAt).toLocaleString()}
-                </p>
               </div>
             ))}
           </div>
         )}
       </div>
     </main>
+  );
+}
+
+function DocIcon() {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <path d="M14 2v6h6" />
+      <path d="M9 13h6M9 17h6" />
+    </svg>
   );
 }
