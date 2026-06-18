@@ -2,7 +2,7 @@
 
 A lightweight collaborative document editor built as part of the Ajaia Full Stack Product Engineer assessment.
 
-**Live URL:** https://ajaia-product-nodsyj6el-analytics1hemanth-s-projects.vercel.app/
+**Live URL:** https://ajaia-editor-product.netlify.app/
 
 ## Test Accounts
 
@@ -45,7 +45,7 @@ A lightweight collaborative document editor built as part of the Ajaia Full Stac
 - **Frontend:** Next.js 16 (App Router), TipTap, Tailwind CSS
 - **Backend:** Next.js API Routes
 - **Database:** Supabase PostgreSQL via Prisma 5
-- **Deployment:** Vercel
+- **Deployment:** netlify
 
 ## Local Setup
 

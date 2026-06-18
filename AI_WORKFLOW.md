@@ -11,7 +11,7 @@
 - **API route scaffolding:** CRUD endpoints for documents and sharing were drafted by AI, then adjusted for Next.js 16 App Router conventions (async params, Promise-based route signatures).
 - **TipTap editor integration:** AI provided the base editor component with a working toolbar. Saved significant time on ProseMirror API research.
 - **CSS fix for editor text:** TipTap text was nearly invisible due to Tailwind's CSS reset. AI diagnosed the conflict and provided ProseMirror-specific style overrides.
-- **Vercel deployment fix:** Prisma Client generation error on Vercel was diagnosed instantly — added `prisma generate` to the build script.
+- **netlify deployment fix:** Prisma Client generation error on netlify was diagnosed instantly — added `prisma generate` to the build script.
 
 ## What I Changed or Rejected
 
@@ -25,4 +25,4 @@
 - **Manual end-to-end testing:** Every feature tested in browser — document CRUD, formatting persistence, file import, share/unshare, cross-user permission enforcement.
 - **Permission boundary testing:** Logged in as different users to verify view-only users see read-only banner and receive 403 on edit attempts (confirmed in Network tab).
 - **Automated tests:** Vitest tests verify seeded users exist and sharing permission logic works at the database layer.
-- **Incremental deployment:** Every feature was pushed to Vercel and verified on the live URL before moving to the next feature.
+- **Incremental deployment:** Every feature was pushed to netlify and verified on the live URL before moving to the next feature.

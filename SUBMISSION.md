@@ -6,7 +6,8 @@
 | README.md | [README.md](./README.md) |
 | Architecture note | [ARCHITECTURE.md](./ARCHITECTURE.md) |
 | AI workflow note | [AI_WORKFLOW.md](./AI_WORKFLOW.md) |
-| Live deployment | https://ajaia-product-nodsyj6el-analytics1hemanth-s-projects.vercel.app/ |
+| Live deployment | https://ajaia-editor-product.netlify.app/ |
+| Walkthrough video | https://drive.google.com/file/d/1ISgZqaJlfCX21_OaJhe-d3vLtS0djGb5/view?usp=sharing |
 | This file | [SUBMISSION.md](./SUBMISSION.md) |
 
 ## Test Accounts
@@ -39,7 +40,7 @@ All accounts are pre-seeded. Select any user from the login screen:
 - Permission enforcement (view-only = no editing)
 - Owned vs shared document sections on dashboard
 - Persistent storage via Supabase PostgreSQL
-- Deployed on Vercel
+- Deployed on netlify
 
 ### Not Included (intentional scope cuts)
 - Real authentication (mocked via user selection)

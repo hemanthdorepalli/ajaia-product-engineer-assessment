@@ -6,7 +6,7 @@
 - **Backend:** Next.js API Routes (no separate server)
 - **Database:** Supabase PostgreSQL via Prisma 5
 - **Auth:** Mocked login with JWT httpOnly cookies
-- **Deployment:** Vercel
+- **Deployment:** netlify
 
 ## Data Model
 
@@ -18,7 +18,7 @@ Three tables: User, Document, Share.
 
 ## Key Decisions
 
-**Next.js API routes as backend:** Single deployment on Vercel. No separate Express server needed. Reduces infra complexity for this scope.
+**Next.js API routes as backend:** Single deployment on netlify. No separate Express server needed. Reduces infra complexity for this scope.
 
 **Mocked auth over real auth:** Brief allows simulated users. OAuth/email-password would take 1-2 hours with zero product value for this demo. JWT cookie still enforces per-request authorization on every API route.
 
