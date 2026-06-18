@@ -1,35 +1,39 @@
 # Architecture Note
 
-## Stack Choice
+## Stack
 
-Next.js App Router serves both frontend and API routes, eliminating the need for a separate backend service. This reduces deployment complexity and keeps the project within a single Vercel deployment.
-
-Prisma 5 with Supabase PostgreSQL provides type-safe database access with a clear schema. TipTap (ProseMirror-based) handles rich text editing with JSON-serializable document state, making persistence straightforward.
+- **Frontend:** Next.js 16 (App Router), TipTap rich text editor, Tailwind CSS
+- **Backend:** Next.js API Routes (no separate server)
+- **Database:** Supabase PostgreSQL via Prisma 5
+- **Auth:** Mocked login with JWT httpOnly cookies
+- **Deployment:** Vercel
 
 ## Data Model
 
 Three tables: User, Document, Share.
 
-- **User**: Seeded accounts (Alice, Bob, Carol) for demo purposes
-- **Document**: Stores title and TipTap JSON content, linked to an owner
-- **Share**: Join table with docId + userId + permission (view/edit), enforced at the API layer
+- **User** — seeded accounts (Hemanth, Alice, Bob, Carol) for demo
+- **Document** — title + TipTap JSON content, linked to owner via ownerId
+- **Share** — join table (docId + userId + permission). Unique constraint on [docId, userId]
 
 ## Key Decisions
 
-**Mocked auth over real auth:** The brief allows simulated users. Building OAuth or email/password auth would consume 1-2 hours with zero product value for this demo. JWT cookie still enforces per-request authorization.
+**Next.js API routes as backend:** Single deployment on Vercel. No separate Express server needed. Reduces infra complexity for this scope.
 
-**TipTap JSON over HTML storage:** Storing editor state as JSON preserves structure for future features (version diffing, real-time sync via Yjs). HTML storage would require round-trip parsing.
+**Mocked auth over real auth:** Brief allows simulated users. OAuth/email-password would take 1-2 hours with zero product value for this demo. JWT cookie still enforces per-request authorization on every API route.
 
-**API-level permission enforcement:** Every document endpoint checks ownership or share permission before returning data. View-only users receive a 403 on PUT requests. This is validated by the automated test.
+**TipTap JSON over HTML storage:** Storing editor state as JSON preserves document structure for future features like version diffing and real-time sync via Yjs. HTML storage would require round-trip parsing.
 
-**No .docx import:** Mammoth.js handles basic docx conversion but edge cases (nested tables, images, complex lists) would consume disproportionate time. Scoped to .txt and .md with clear UI messaging.
+**API-level permission enforcement:** Every document endpoint checks ownership or share record before returning data. View-only users get 403 on PUT. Owner-only actions (delete, share) are gated separately.
 
-**Auto-save with debounce:** 1-second debounce on editor changes triggers a PUT to /api/documents/[id]. No manual save button needed — matches modern editor UX expectations.
+**No .docx import:** Scoped file upload to .txt and .md only. Mammoth.js handles basic docx but edge cases (nested tables, images, complex formatting) would consume disproportionate time. Stated clearly in UI.
 
-## What I'd Prioritize Next
+**Auto-save with 1s debounce:** No manual save button. Content saves automatically after 1 second of inactivity. Matches modern editor UX expectations (Google Docs, Notion).
 
-1. Yjs integration for real-time collaborative editing
-2. Document version history with timestamp-based snapshots
+## What I Would Build Next (2-4 hours)
+
+1. Real-time collaboration via Yjs + WebSocket
+2. Document version history with timestamp snapshots
 3. Export to PDF and Markdown
-4. Proper authentication via NextAuth
-5. Role-based sharing with link-based invite tokens
+4. Proper authentication via NextAuth.js
+5. Link-based sharing with permission tokens

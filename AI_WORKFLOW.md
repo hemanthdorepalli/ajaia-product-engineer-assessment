@@ -2,27 +2,27 @@
 
 ## Tools Used
 
-- **Claude (Anthropic):** Primary AI assistant for architecture planning, code generation, and debugging
-- **Cursor / VS Code:** Code editor with AI-assisted completions
+- **Claude (Anthropic)** — architecture planning, code scaffolding, debugging
+- **VS Code** — primary code editor
 
 ## Where AI Materially Sped Up Work
 
-- **Prisma schema design:** Claude generated the initial User/Document/Share schema. Saved ~20 minutes of manual modeling.
-- **API route scaffolding:** CRUD endpoints for documents and sharing were drafted by AI, then reviewed and adjusted for Next.js 16 App Router patterns (async params, route handler signatures).
-- **TipTap editor setup:** AI provided the base editor component with toolbar. Saved significant time on ProseMirror API research.
-- **CSS debugging:** Editor text was nearly invisible due to Tailwind reset conflicts. AI diagnosed the issue and provided ProseMirror-specific CSS overrides.
-- **Vercel deployment fix:** Prisma generate error on Vercel was identified and fixed in under a minute with AI guidance.
+- **Prisma schema design:** Generated the User/Document/Share schema with correct relations and unique constraints. Saved ~20 minutes of manual modeling.
+- **API route scaffolding:** CRUD endpoints for documents and sharing were drafted by AI, then adjusted for Next.js 16 App Router conventions (async params, Promise-based route signatures).
+- **TipTap editor integration:** AI provided the base editor component with a working toolbar. Saved significant time on ProseMirror API research.
+- **CSS fix for editor text:** TipTap text was nearly invisible due to Tailwind's CSS reset. AI diagnosed the conflict and provided ProseMirror-specific style overrides.
+- **Vercel deployment fix:** Prisma Client generation error on Vercel was diagnosed instantly — added `prisma generate` to the build script.
 
 ## What I Changed or Rejected
 
-- **Prisma 7 configuration:** AI initially generated Prisma 7 syntax. After migration errors, I downgraded to Prisma 5 for stability — AI had assumed the latest version without checking compatibility.
-- **Auth complexity:** AI's first auth suggestion included refresh token rotation and JTI tracking. I rejected this as overengineered for a mocked-auth demo and simplified to a basic JWT cookie.
-- **File upload scope:** AI suggested supporting .docx via Mammoth.js. I rejected this to avoid edge-case handling and scoped to .txt/.md only.
-- **Editor toolbar:** Adjusted toolbar styling and active-state behavior after AI-generated version had inconsistent highlight states.
+- **Prisma 7 → Prisma 5 downgrade:** AI initially generated Prisma 7 config syntax. After repeated migration errors with the new config format, I made the decision to downgrade to Prisma 5 for stability. AI had assumed latest version without checking real-world compatibility.
+- **Over-engineered auth rejected:** AI first suggested refresh token rotation with JTI tracking and device validation. I rejected this as unnecessary for a mocked-auth assessment and simplified to a single JWT cookie.
+- **Hardcoded users → DB fetch:** AI initially hardcoded the login user list in the frontend. I corrected this to fetch users from the database via a public API endpoint, which better demonstrates full-stack data flow.
+- **.docx file upload rejected:** AI suggested supporting .docx via Mammoth.js. I rejected this due to unpredictable edge cases and scoped to .txt and .md with clear UI messaging.
 
 ## How I Verified Correctness
 
-- **Manual testing:** Every feature was tested end-to-end in the browser — document CRUD, sharing permissions (view vs edit enforcement), file import, and cross-user access.
-- **Permission boundary testing:** Logged in as different users to verify that view-only users see the read-only banner and cannot save edits (403 response confirmed in Network tab).
-- **Automated test:** Wrote a Vitest test confirming unauthenticated requests return 401 and non-existent documents return 404.
-- **Deployment verification:** Every commit was pushed and verified on the live Vercel URL before moving to the next feature.
+- **Manual end-to-end testing:** Every feature tested in browser — document CRUD, formatting persistence, file import, share/unshare, cross-user permission enforcement.
+- **Permission boundary testing:** Logged in as different users to verify view-only users see read-only banner and receive 403 on edit attempts (confirmed in Network tab).
+- **Automated tests:** Vitest tests verify seeded users exist and sharing permission logic works at the database layer.
+- **Incremental deployment:** Every feature was pushed to Vercel and verified on the live URL before moving to the next feature.
