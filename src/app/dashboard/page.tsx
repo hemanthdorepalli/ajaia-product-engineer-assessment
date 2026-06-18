@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useToast } from "@/components/Toast";
+import { DashboardSkeleton } from "@/components/Skeleton";
 
 interface Doc {
   id: string;
@@ -22,32 +24,10 @@ export default function DashboardPage() {
   const [shared, setShared] = useState<Doc[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const router = useRouter();
   const [uploading, setUploading] = useState(false);
-
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploading(true);
-
-    const formData = new FormData();
-    formData.append("file", file);
-
-    const res = await fetch("/api/documents/import", {
-      method: "POST",
-      body: formData,
-    });
-
-    if (res.ok) {
-      const doc = await res.json();
-      router.push(`/docs/${doc.id}`);
-    } else {
-      const err = await res.json();
-      alert(err.error || "Upload failed");
-    }
-    setUploading(false);
-    e.target.value = "";
-  };
+  const [creating, setCreating] = useState(false);
+  const router = useRouter();
+  const toast = useToast();
 
   useEffect(() => {
     Promise.all([
@@ -63,21 +43,57 @@ export default function DashboardPage() {
   }, [router]);
 
   const createDoc = async () => {
-    const res = await fetch("/api/documents", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: "Untitled" }),
-    });
-    if (res.ok) {
+    setCreating(true);
+    try {
+      const res = await fetch("/api/documents", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: "Untitled" }),
+      });
+      if (!res.ok) throw new Error();
       const doc = await res.json();
       router.push(`/docs/${doc.id}`);
+    } catch {
+      toast("Couldn't create document", "error");
+      setCreating(false);
     }
   };
 
-  const deleteDoc = async (id: string) => {
+  const deleteDoc = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
     if (!confirm("Delete this document?")) return;
-    await fetch(`/api/documents/${id}`, { method: "DELETE" });
-    setOwned((prev) => prev.filter((d) => d.id !== id));
+    const prev = owned;
+    setOwned((p) => p.filter((d) => d.id !== id));
+    try {
+      const res = await fetch(`/api/documents/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error();
+      toast("Document deleted", "info");
+    } catch {
+      setOwned(prev);
+      toast("Couldn't delete document", "error");
+    }
+  };
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+    try {
+      const res = await fetch("/api/documents/import", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      toast(`Imported “${data.title}”`, "success");
+      router.push(`/docs/${data.id}`);
+    } catch (err) {
+      toast((err as Error).message || "Upload failed", "error");
+      setUploading(false);
+    }
+    e.target.value = "";
   };
 
   const logout = async () => {
@@ -85,40 +101,47 @@ export default function DashboardPage() {
     router.push("/");
   };
 
-  if (loading)
+  if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 text-slate-400">
-        Loading...
-      </div>
+      <main className="min-h-screen bg-gray-50">
+        <nav className="bg-white border-b px-6 py-4 flex justify-between items-center shadow-sm">
+          <h1 className="text-xl font-bold text-blue-600">Ajaia Docs</h1>
+          <div className="flex items-center gap-2">
+            <div className="skeleton w-8 h-8 rounded-full" />
+            <div className="skeleton h-4 w-20 rounded" />
+          </div>
+        </nav>
+        <div className="max-w-4xl mx-auto px-6 py-8">
+          <div className="skeleton h-6 w-40 rounded mb-6" />
+          <DashboardSkeleton />
+        </div>
+      </main>
     );
+  }
 
   return (
-    <main className="min-h-screen bg-slate-50">
-      <nav className="sticky top-0 z-10 bg-white/80 backdrop-blur border-b border-slate-200 px-6 py-3 flex justify-between items-center">
+    <main className="min-h-screen bg-gray-50">
+      <nav className="bg-white border-b px-6 py-4 flex justify-between items-center shadow-sm">
         <h1 className="text-xl font-bold text-blue-600">Ajaia Docs</h1>
-        <div className="flex items-center gap-3">
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-xs font-semibold text-white">
-            {user?.name?.[0]?.toUpperCase()}
-          </span>
-          <span className="hidden text-sm text-slate-600 sm:block">
-            {user?.name}{" "}
-            <span className="text-slate-400">({user?.email})</span>
-          </span>
-          <button
-            onClick={logout}
-            className="rounded-lg px-3 py-1.5 text-sm font-medium text-red-500 transition hover:bg-red-50"
-          >
-            Logout
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center text-sm font-bold">
+              {user?.name?.[0]}
+            </div>
+            <span className="text-sm text-gray-600 font-medium">{user?.name}</span>
+          </div>
+          <button onClick={logout} className="text-sm text-gray-400 hover:text-red-500 transition">
+            Sign out
           </button>
         </div>
       </nav>
 
-      <div className="max-w-4xl mx-auto p-6">
-        <div className="flex flex-wrap justify-between items-center gap-3 mb-6">
-          <h2 className="text-lg font-semibold text-slate-900">My Documents</h2>
+      <div className="max-w-4xl mx-auto px-6 py-8">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-bold text-gray-900">My Documents</h2>
           <div className="flex gap-2">
-            <label className="cursor-pointer rounded-lg bg-white px-4 py-2 text-sm font-medium text-slate-700 ring-1 ring-slate-200 transition hover:bg-slate-100">
-              {uploading ? "Importing..." : "Import .txt / .md"}
+            <label className="bg-white border border-gray-200 text-gray-600 px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-50 cursor-pointer transition">
+              {uploading ? "Importing..." : "↑ Import .txt / .md"}
               <input
                 type="file"
                 accept=".txt,.md"
@@ -128,75 +151,83 @@ export default function DashboardPage() {
             </label>
             <button
               onClick={createDoc}
-              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-blue-700"
+              disabled={creating}
+              className="bg-blue-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-blue-700 transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              + New Document
+              {creating ? "Creating…" : "+ New Document"}
             </button>
           </div>
         </div>
 
         {owned.length === 0 ? (
-          <div className="mb-8 rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center text-sm text-slate-400">
-            No documents yet. Create one to get started.
+          <div className="bg-white rounded-2xl border border-dashed border-gray-200 p-12 text-center mb-10">
+            <p className="text-gray-400 text-sm">No documents yet.</p>
+            <button onClick={createDoc} className="text-blue-600 text-sm font-medium mt-2 hover:underline">
+              Create your first document
+            </button>
           </div>
         ) : (
-          <div className="grid gap-3 mb-8">
+          <div className="grid gap-3 mb-10">
             {owned.map((doc) => (
               <div
                 key={doc.id}
-                className="group flex items-center justify-between rounded-xl border border-slate-200 bg-white p-4 transition hover:border-slate-300 hover:shadow-sm"
+                onClick={() => router.push(`/docs/${doc.id}`)}
+                className="bg-white p-4 rounded-xl border border-gray-100 hover:border-blue-200 hover:shadow-sm cursor-pointer flex justify-between items-center transition-all group"
               >
-                <div
-                  className="flex flex-1 cursor-pointer items-center gap-3"
-                  onClick={() => router.push(`/docs/${doc.id}`)}
-                >
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
-                    <DocIcon />
-                  </span>
-                  <div className="min-w-0">
-                    <p className="truncate font-medium text-slate-900">{doc.title}</p>
-                    <p className="text-xs text-slate-400">
-                      Updated {new Date(doc.updatedAt).toLocaleString()}
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center text-blue-500 text-lg">
+                    📄
+                  </div>
+                  <div>
+                    <p className="font-semibold text-gray-900">{doc.title}</p>
+                    <p className="text-xs text-gray-400">
+                      Edited {new Date(doc.updatedAt).toLocaleString()}
                     </p>
                   </div>
                 </div>
                 <button
-                  onClick={() => deleteDoc(doc.id)}
-                  className="ml-4 rounded-lg px-3 py-1.5 text-sm font-medium text-red-400 transition hover:bg-red-50 hover:text-red-600"
+                  onClick={(e) => deleteDoc(doc.id, e)}
+                  className="text-gray-300 hover:text-red-500 text-sm opacity-0 group-hover:opacity-100 transition"
                 >
-                  Delete
+                  🗑️
                 </button>
               </div>
             ))}
           </div>
         )}
 
-        <h2 className="text-lg font-semibold text-slate-900 mb-4">Shared with Me</h2>
+        <h2 className="text-xl font-bold text-gray-900 mb-4">Shared with Me</h2>
         {shared.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center text-sm text-slate-400">
-            No shared documents.
+          <div className="bg-white rounded-2xl border border-dashed border-gray-200 p-12 text-center">
+            <p className="text-gray-400 text-sm">No shared documents yet.</p>
           </div>
         ) : (
           <div className="grid gap-3">
             {shared.map((doc) => (
               <div
                 key={doc.id}
-                className="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 bg-white p-4 transition hover:border-slate-300 hover:shadow-sm"
                 onClick={() => router.push(`/docs/${doc.id}`)}
+                className="bg-white p-4 rounded-xl border border-gray-100 hover:border-green-200 hover:shadow-sm cursor-pointer transition-all"
               >
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
-                  <DocIcon />
-                </span>
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="truncate font-medium text-slate-900">{doc.title}</p>
-                    <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-500">
-                      {doc.shares?.[0]?.permission || "view"}
-                    </span>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center text-green-500 text-lg">
+                    🔗
                   </div>
-                  <p className="text-xs text-slate-400">
-                    By {doc.owner.name} · Updated {new Date(doc.updatedAt).toLocaleString()}
-                  </p>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <p className="font-semibold text-gray-900">{doc.title}</p>
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                        doc.shares?.[0]?.permission === "edit"
+                          ? "bg-blue-100 text-blue-600"
+                          : "bg-gray-100 text-gray-500"
+                      }`}>
+                        {doc.shares?.[0]?.permission || "view"}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-400">
+                      Shared by {doc.owner.name} · Edited {new Date(doc.updatedAt).toLocaleString()}
+                    </p>
+                  </div>
                 </div>
               </div>
             ))}
@@ -204,25 +235,5 @@ export default function DashboardPage() {
         )}
       </div>
     </main>
-  );
-}
-
-function DocIcon() {
-  return (
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-      <path d="M14 2v6h6" />
-      <path d="M9 13h6M9 17h6" />
-    </svg>
   );
 }
