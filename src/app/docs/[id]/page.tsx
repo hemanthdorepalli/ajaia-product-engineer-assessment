@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, use } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
+import ShareModal from "@/components/ShareModal";
 
 const Editor = dynamic(() => import("@/components/Editor"), { ssr: false });
 
@@ -20,6 +21,7 @@ export default function DocPage({ params }: { params: Promise<{ id: string }> })
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
+  const [showShare, setShowShare] = useState(false);
 
   useEffect(() => {
     fetch(`/api/documents/${id}`)
@@ -98,6 +100,14 @@ export default function DocPage({ params }: { params: Promise<{ id: string }> })
         </div>
         <div className="flex items-center gap-3">
           {saving && <span className="text-xs text-gray-400">Saving...</span>}
+          {doc.permission === "owner" && (
+            <button
+              onClick={() => setShowShare(true)}
+              className="bg-green-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-green-700"
+            >
+              Share
+            </button>
+          )}
           <span className="text-xs px-2 py-1 bg-gray-100 rounded text-gray-500">
             {doc.permission}
           </span>
